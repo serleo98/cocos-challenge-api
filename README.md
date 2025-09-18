@@ -126,3 +126,18 @@ $ npm run test:cov
 ## License
 
 This project is [MIT licensed](LICENSE).
+
+
+# Build the Docker image
+docker build -t cocos-challenge-api .
+
+# Run the container with environment variables
+docker run -d \
+  --name cocos-api \
+  -p 3000:3000 \
+  -e DB_HOST=your_db_host \
+  -e DB_PORT=your_db_port \
+  -e DB_DATABASE=your_database_name \
+  -e DB_USERNAME=your_username \
+  -e DB_PASSWORD=your_password \
+  cocos-challenge-api
