@@ -8,13 +8,16 @@ export class Position {
   private portfolio?: Portfolio;
   private instrument?: Instrument;
   private marketData?: MarketData;
+  private averagePrice: number = 0;
 
   constructor(
     instrumentId: string,
     quantity: number,
+    averagePrice: number = 0
   ) {
     this.instrumentId = instrumentId;
     this.quantity = quantity;
+    this.averagePrice = averagePrice;
   }
 
   getInstrumentId(): string {
@@ -23,6 +26,14 @@ export class Position {
 
   getQuantity(): number {
     return this.quantity;
+  }
+  
+  getAveragePrice(): number {
+    return this.averagePrice;
+  }
+  
+  setAveragePrice(price: number): void {
+    this.averagePrice = price;
   }
 
   setInstrument(instrument: Instrument): void {
@@ -53,5 +64,11 @@ export class Position {
   getDailyReturnPercentage(): number | null {
     if (!this.marketData) return null;
     return this.marketData.getDailyReturnPercentage();
+  }
+
+  getTotalReturnPercentage(): number | null {
+    if (!this.marketData || this.averagePrice === 0) return null;
+    const currentPrice = this.marketData.getClose();
+    return ((currentPrice - this.averagePrice) / this.averagePrice) * 100;
   }
 }

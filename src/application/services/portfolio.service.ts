@@ -24,40 +24,69 @@ export class PortfolioService {
 
   async buildUserPortfolio(userId: number): Promise<Portfolio | null> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-
-    console.log(user);
+    
     if (!user) return null;
     
-    const portfolio = new Portfolio(
-      user.id.toString(),
-      0
-    );
     
-    portfolio.setUser(user);
+    const initialCash = 100000; 
     
-    const orders = await this.orderRepository.find({
+    
+    const filledOrders = await this.orderRepository.find({
       where: { 
         userId: userId,
         status: OrderStatus.FILLED
       },
-      relations: ['instrument']
+      relations: ['instrument'],
+      order: { dateTime: 'ASC' } 
     });
-
-    console.log(orders);
     
     
-    const positionsByInstrument = new Map<number, { quantity: number, instrumentId: number }>();
+    let availableCash = initialCash;
     
-    for (const order of orders) {
+    for (const order of filledOrders) {
+      if (order.side === 'BUY') {
+        availableCash -= order.quantity * order.price;
+      } else if (order.side === 'SELL') {
+        availableCash += order.quantity * order.price;
+      }
+    }
+    
+    
+    const portfolio = new Portfolio(
+      user.id.toString(),
+      availableCash
+    );
+    
+    portfolio.setUser(user);
+    
+    
+    const positionsByInstrument = new Map<number, { 
+      quantity: number, 
+      instrumentId: number,
+      totalCost: number, 
+      buyQuantity: number
+    }>();
+    
+    for (const order of filledOrders) {
       const instrumentId = order.instrumentId;
-      const currentPosition = positionsByInstrument.get(instrumentId) || { quantity: 0, instrumentId };
-      
+      const currentPosition = positionsByInstrument.get(instrumentId) || { 
+        quantity: 0, 
+        instrumentId, 
+        totalCost: 0, 
+        buyQuantity: 0 
+      };
       
       if (order.side === 'BUY') {
         currentPosition.quantity += order.quantity;
+        currentPosition.buyQuantity += order.quantity;
+        currentPosition.totalCost += order.quantity * order.price;
       } else if (order.side === 'SELL') {
         currentPosition.quantity -= order.quantity;
+        
       }
+      
+      
+      currentPosition.quantity = Math.max(0, currentPosition.quantity);
       
       positionsByInstrument.set(instrumentId, currentPosition);
     }
@@ -67,18 +96,23 @@ export class PortfolioService {
     
     for (const [instrumentId, positionData] of positionsByInstrument.entries()) {
       
-      if (positionData.quantity !== 0) {
+      if (positionData.quantity > 0) {
+        
+        const averagePrice = positionData.buyQuantity > 0 
+          ? positionData.totalCost / positionData.buyQuantity
+          : 0;
+          
+        
         const position = new Position(
           instrumentId.toString(),
-          positionData.quantity
+          positionData.quantity,
+          averagePrice
         );
         
         
         const instrument = await this.instrumentRepository.findOne({
           where: { id: instrumentId }
         });
-
-        console.log(instrument);
         
         if (instrument) {
           position.setInstrument(instrument);
@@ -100,8 +134,13 @@ export class PortfolioService {
     
     
     portfolio.setPositions(positions);
-
-    console.log(portfolio);
+    
+    
+    const totalPortfolioValue = positions.reduce((total, position) => {
+      const marketValue = position.getMarketValue();
+      return total + (marketValue || 0);
+    }, availableCash);
+    
     return portfolio;
   }
 }

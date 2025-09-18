@@ -13,11 +13,13 @@ export class PortfolioMapper {
           name: instrument?.getName(),
           type: instrument?.getType(),
           quantity: position.getQuantity(),
-          averagePrice: 0,
-          valuation: position.getMarketValue() || 0
+          averagePrice: position.getAveragePrice(),
+          valuation: position.getMarketValue() || 0,
+          totalReturnPercentage: position.getTotalReturnPercentage() || 0
         };
       }),
-      totalValuation: portfolio.getTotalAccountValue()
+      totalAccountValueARS: portfolio.getTotalAccountValue(),
+      availableCash: portfolio.getAvailableCash()
     };
   }
 }

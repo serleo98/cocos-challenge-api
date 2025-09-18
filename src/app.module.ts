@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { UserModule } from './infrastructure/modules/user.module';
 import { PortfolioModule } from './infrastructure/modules/portfolio.module';
 import { DatabaseModule } from './infrastructure/modules/database.module';
+import { InstrumentModule } from './infrastructure/modules/instrument.module';
 
 @Module({
   imports: [
@@ -14,7 +15,8 @@ import { DatabaseModule } from './infrastructure/modules/database.module';
     }),
     DatabaseModule,
     UserModule, 
-    PortfolioModule
+    PortfolioModule,
+    InstrumentModule
   ],
   controllers: [AppController],
   providers: [AppService],

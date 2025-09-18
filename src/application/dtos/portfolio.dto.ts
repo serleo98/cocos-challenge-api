@@ -11,6 +11,9 @@ export class PortfolioDto {
   @ApiProperty({ description: 'List of positions', type: [PositionDto] })
   positions: PositionDto[];
 
-  @ApiProperty({ description: 'Total portfolio valuation' })
-  totalValuation: number;
+  @ApiProperty({ description: 'Total portfolio valuation in ARS' })
+  totalAccountValueARS: number;
+
+  @ApiProperty({ description: 'Available cash for trading in ARS' })
+  availableCash: number;
 }

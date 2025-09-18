@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, In } from 'typeorm';
+import { Repository, In, Like, ILike } from 'typeorm';
 import { Instrument } from '../../domain/entities/instrument.entity';
 import { InstrumentRepository } from '../../domain/repositories/instrument.repository.interface';
 
@@ -20,4 +20,13 @@ export class InstrumentRepositoryImpl implements InstrumentRepository {
     return this.instrumentRepository.findBy({ id: In(ids) });
   }
 
+  async searchByTickerOrName(query: string): Promise<Instrument[]> {
+    return this.instrumentRepository.find({
+      where: [
+        { ticker: ILike(`%${query}%`) },
+        { name: ILike(`%${query}%`) }
+      ],
+      take: 50
+    });
+  }
 }

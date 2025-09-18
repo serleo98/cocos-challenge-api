@@ -24,4 +24,7 @@ export class PositionDto {
 
   @ApiProperty({ description: 'Position valuation' })
   valuation: number;
+
+  @ApiProperty({ description: 'Total return percentage' })
+  totalReturnPercentage: number;
 }
